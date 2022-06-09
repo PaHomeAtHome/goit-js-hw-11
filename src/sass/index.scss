@@ -1,8 +1,11 @@
 @import './common';
 
 .info-item {
-    display: block;
+    display: flex;
     padding: 10px;
+    flex-direction: column;
+    align-items: center;
+    line-height: 1.5;
 }
 
 .info {
@@ -15,4 +18,9 @@
 
 .load-more.show {
     display: block;
+}
+
+a {
+    text-decoration: none;
+    color: inherit;
 }

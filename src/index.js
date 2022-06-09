@@ -1,4 +1,8 @@
 import { Notify } from "notiflix"
+import SimpleLightbox from "simplelightbox";
+import "simplelightbox/dist/simple-lightbox.min.css";
+
+const lightBox = new SimpleLightbox(`.gallery div a`, { captionsData: `alt`, captionDelay: 250 });
 
 const API_KEY = `27953461-d4616364e0672ac878ff8b77d`
 const imageType = `photo`
@@ -38,6 +42,12 @@ async function callImages(event) {
     const fetch = await fetchImages(url)
     const imagesMarkup = await makeImages(fetch)
 
+    const totalHits = await imagesMarkup;
+
+    Notify.success(`Hooray! We found ${totalHits} images.`)
+    
+    smoothScroll() 
+
     return;
 }
 
@@ -57,10 +67,10 @@ function makeImages(images) {
         const comments = hit.comments;
         const downloads = hit.downloads;
 
-        gallery.insertAdjacentHTML("beforeend",
-            
+        gallery.insertAdjacentHTML("beforeend", 
             `<div class="photo-card">
-            <img src="${webFormatURL}" alt="${searchParameter}" loading="lazy" />
+            <a href="${largeImage}">
+            <img src="${webFormatURL}" alt="${tags}" loading="lazy"/>
             <div class="info">
             <p class="info-item">
             <b>Likes</b>${likes}</p>
@@ -71,11 +81,35 @@ function makeImages(images) {
             <p class="info-item">
             <b>Downloads</b>${downloads}</p>
             </div>
-            </div>`);
+             </a>
+            </div>
+           `);
     })
+    
+    if (gallery.children.length >= 500) {
+            Notify.warning("We're sorry, but you've reached the end of search results.")
+            loadMoreButton.classList.remove("show");
+            return;
+    }
     
     console.log(images)
     loadMoreButton.classList.add("show");
-    return;
+    lightBox.on('show.simplelightbox')
+    lightBox.refresh();
+    smoothScroll();
+
+    return images.totalHits;
 }
 
+function smoothScroll() {
+
+    const { height: cardHeight } = document
+  .querySelector(".gallery")
+  .firstElementChild.getBoundingClientRect();
+window.scrollBy({
+  top: cardHeight * 39,
+    behavior: "smooth",
+});
+    console.log(cardHeight)
+
+}
