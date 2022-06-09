@@ -16,6 +16,7 @@ let searchParameter = ``;
 const searchForm = document.querySelector(`#search-form`)
 const gallery = document.querySelector(`.gallery`)
 const loadMoreButton = document.querySelector(`.load-more`)
+const checkBox = document.querySelector(`#infiniteScroll`)
 
 searchForm.addEventListener(`submit`, callImages)
 loadMoreButton.addEventListener(`click`, callImages)
@@ -28,14 +29,15 @@ async function fetchImages(url) {
 }
 
 async function callImages(event) {
-    try {if (event) {
+    if (event) {
         if (event.type == `submit`) {
         event.preventDefault();
         searchParameter = event.target.elements.searchQuery.value;
         gallery.innerHTML = ''
         page = 1;
-        loadMoreButton.classList.remove("show");
+            loadMoreButton.classList.remove("show");
     }}
+    try {
     const url = `https://pixabay.com/api/?key=${API_KEY}&q=${searchParameter}&image_type=${imageType}&orientation=${imageOrientation}&safesearch=${safeSearch}&per_page=${perPage}`
     const fetch = await fetchImages(url)
     const imagesMarkup = await makeImages(fetch)
@@ -51,23 +53,18 @@ async function callImages(event) {
 function makeImages(images) {
 
      if (images.hits.length === 0) {
-        Notify.warning("Sorry, there are no images matching your search query. Please try again.")
+         Notify.warning("Sorry, there are no images matching your search query. Please try again.")
+         
     }
 
-    images.hits.map(hit => {
-        
-        const webFormatURL = hit.webformatURL;
-        const largeImage = hit.largeImageURL;
-        const tags = hit.tags;
-        const likes = hit.likes;
-        const views = hit.views;
-        const comments = hit.comments;
-        const downloads = hit.downloads;
+    images.hits.map(hit => { 
+
+        const { webformatURL, largeImageURL, tags, likes, views, comments, downloads } = hit;
 
         gallery.insertAdjacentHTML("beforeend", 
             `<div class="photo-card">
-            <a href="${largeImage}">
-            <img src="${webFormatURL}" alt="${tags}" loading="lazy"/>
+            <a href="${largeImageURL}">
+            <img src="${webformatURL}" alt="${tags}" loading="lazy"/>
             <div class="info">
             <p class="info-item">
             <b>Likes</b>${likes}</p>
@@ -87,6 +84,8 @@ function makeImages(images) {
     lightBox.refresh();
     smoothScroll();
 
+        window.onscroll = throttle(infiniteScroll, 500);
+
     if (gallery.children.length >= 500) {
             Notify.warning("We're sorry, but you've reached the end of search results.")
             loadMoreButton.classList.remove("show");
@@ -101,17 +100,22 @@ function makeImages(images) {
 function smoothScroll() {
 
     const { height: cardHeight } = document
-  .querySelector(".gallery")
-  .firstElementChild.getBoundingClientRect();
-window.scrollBy({
-  top: cardHeight * 40,
-    behavior: "smooth",
-});
+        .querySelector(".gallery")
+        .firstElementChild.getBoundingClientRect();
+    window.scrollBy({
+        top: cardHeight * perPage,
+        behavior: "smooth",
+    });
     
-    window.onscroll = throttle(function () {
-        console.log(`scroll`)
-        if ((window.innerHeight + window.scrollY) >= document.body.scrollHeight) {
-        callImages()
-    }
-}), 1500;
 }
+
+function infiniteScroll() {
+    if (checkBox.checked === false) {
+        return;
+        }
+    if ((window.innerHeight + window.scrollY) >= document.body.scrollHeight) {
+            loadMoreButton.classList.remove("show")
+            callImages()
+            return;
+        }
+    }
