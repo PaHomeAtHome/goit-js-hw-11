@@ -1,5 +1,16 @@
 @import './common';
 
+.photo-card {
+    height: 500px;
+}
+
+img {
+    height: 400px;
+    width: 400px;
+    object-fit: contain;
+
+}
+
 .info-item {
     display: flex;
     padding: 10px;

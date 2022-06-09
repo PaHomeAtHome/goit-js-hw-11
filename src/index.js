@@ -46,7 +46,7 @@ async function callImages(event) {
 
     Notify.success(`Hooray! We found ${totalHits} images.`)
     
-    smoothScroll() 
+    smoothScroll()
 
     return;
 }
@@ -107,9 +107,9 @@ function smoothScroll() {
   .querySelector(".gallery")
   .firstElementChild.getBoundingClientRect();
 window.scrollBy({
-  top: cardHeight * 39,
+  top: cardHeight * 40,
     behavior: "smooth",
 });
     console.log(cardHeight)
-
+    console.dir(gallery.firstElementChild.getBoundingClientRect())
 }
