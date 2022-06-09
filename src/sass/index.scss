@@ -1,2 +1,18 @@
 @import './common';
-@import './example';
+
+.info-item {
+    display: block;
+    padding: 10px;
+}
+
+.info {
+    display: flex;
+}
+
+.load-more {
+    display: none;
+}
+
+.load-more.show {
+    display: block;
+}

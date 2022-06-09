@@ -4,24 +4,44 @@ const API_KEY = `27953461-d4616364e0672ac878ff8b77d`
 const imageType = `photo`
 const imageOrientation  = `horizontal`
 const safeSearch = `true`
-const searchParameter = `cat`
-const url = `https://pixabay.com/api/?key=${API_KEY}&q=${searchParameter}&image_type=${imageType}&orientation=${imageOrientation}&safesearch=${safeSearch}`
+const perPage = 40;
+let page = 1;
+let searchParameter = ``;
 
-const body = document.querySelector(`body`)
+const searchForm = document.querySelector(`#search-form`)
+const gallery = document.querySelector(`.gallery`)
+const loadMoreButton = document.querySelector(`.load-more`)
+
+searchForm.addEventListener(`submit`, callImages)
+loadMoreButton.addEventListener(`click`, callImages)
 
 async function fetchImages(url) {
-    const response = await fetch(url);
-    const images = response.json();
+    const response = await fetch(`${url}&page=${page}`);
+    const images = await response.json();
+    page += 1;
     return images;
 }
 
-function callImages() {
-    fetchImages(url).then(makeImage)
+async function callImages(event) {
+
+    event.preventDefault();
+
+    if (event.type == `submit`) {
+        searchParameter = event.target.elements.searchQuery.value;
+        gallery.innerHTML = ''
+        page = 1;
+        loadMoreButton.classList.remove("show");
+    }
+
+    const url = `https://pixabay.com/api/?key=${API_KEY}&q=${searchParameter}&image_type=${imageType}&orientation=${imageOrientation}&safesearch=${safeSearch}&per_page=${perPage}`
+
+    const fetch = await fetchImages(url)
+    const imagesMarkup = await makeImages(fetch)
+
+    return;
 }
 
-callImages()
-
-function makeImage(images) {
+function makeImages(images) {
 
      if (images.hits.length === 0) {
         Notify.warning("Sorry, there are no images matching your search query. Please try again.")
@@ -37,7 +57,7 @@ function makeImage(images) {
         const comments = hit.comments;
         const downloads = hit.downloads;
 
-        body.insertAdjacentHTML("beforeend",
+        gallery.insertAdjacentHTML("beforeend",
             
             `<div class="photo-card">
             <img src="${webFormatURL}" alt="${searchParameter}" loading="lazy" />
@@ -54,7 +74,8 @@ function makeImage(images) {
             </div>`);
     })
     
-console.log(images)
-
+    console.log(images)
+    loadMoreButton.classList.add("show");
+    return;
 }
 
