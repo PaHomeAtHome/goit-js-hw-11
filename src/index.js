@@ -1,6 +1,7 @@
 import { Notify } from "notiflix"
 import SimpleLightbox from "simplelightbox";
 import "simplelightbox/dist/simple-lightbox.min.css";
+import throttle from 'lodash.throttle';
 
 const lightBox = new SimpleLightbox(`.gallery div a`, { captionsData: `alt`, captionDelay: 250 });
 
@@ -27,28 +28,24 @@ async function fetchImages(url) {
 }
 
 async function callImages(event) {
-
-    event.preventDefault();
-
-    if (event.type == `submit`) {
+    try {if (event) {
+        if (event.type == `submit`) {
+        event.preventDefault();
         searchParameter = event.target.elements.searchQuery.value;
         gallery.innerHTML = ''
         page = 1;
         loadMoreButton.classList.remove("show");
-    }
-
+    }}
     const url = `https://pixabay.com/api/?key=${API_KEY}&q=${searchParameter}&image_type=${imageType}&orientation=${imageOrientation}&safesearch=${safeSearch}&per_page=${perPage}`
-
     const fetch = await fetchImages(url)
     const imagesMarkup = await makeImages(fetch)
-
     const totalHits = await imagesMarkup;
-
-    Notify.success(`Hooray! We found ${totalHits} images.`)
-    
-    smoothScroll()
-
-    return;
+    if (gallery.children.length < 500) {
+        Notify.success(`Hooray! We found ${totalHits} images.`)
+    }
+        smoothScroll()
+    }
+    catch {}
 }
 
 function makeImages(images) {
@@ -86,17 +83,17 @@ function makeImages(images) {
            `);
     })
     
+    lightBox.on('show.simplelightbox')
+    lightBox.refresh();
+    smoothScroll();
+
     if (gallery.children.length >= 500) {
             Notify.warning("We're sorry, but you've reached the end of search results.")
             loadMoreButton.classList.remove("show");
             return;
     }
-    
-    console.log(images)
+
     loadMoreButton.classList.add("show");
-    lightBox.on('show.simplelightbox')
-    lightBox.refresh();
-    smoothScroll();
 
     return images.totalHits;
 }
@@ -110,6 +107,11 @@ window.scrollBy({
   top: cardHeight * 40,
     behavior: "smooth",
 });
-    console.log(cardHeight)
-    console.dir(gallery.firstElementChild.getBoundingClientRect())
+    
+    window.onscroll = throttle(function () {
+        console.log(`scroll`)
+        if ((window.innerHeight + window.scrollY) >= document.body.scrollHeight) {
+        callImages()
+    }
+}), 1500;
 }
