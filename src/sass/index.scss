@@ -1,13 +1,37 @@
 @import './common';
 
+.search-form{
+    text-align: center;
+    font-family: Verdana, Geneva, Tahoma, sans-serif;
+    background-color: teal;
+}
+
+label {
+    padding: 2px;
+    color: white;
+}
+
+.gallery {
+    display: grid;
+        grid-template-columns: 1fr 1fr 1fr 1fr;
+        grid-template-rows: 1fr 1fr 1fr;
+        gap: 20px 20px;
+        margin: 40px;
+}
+
 .photo-card {
     height: 500px;
+    display: flex;
+    justify-content: center;
+    border: 1px grey solid;
+    border-radius: 5px;
 }
 
 img {
+    display: inline-flex;
+    width: 100%;
     height: 400px;
-    width: auto;
-    object-fit: contain;
+    object-fit: cover;
 }
 
 .info-item {
@@ -19,11 +43,21 @@ img {
 }
 
 .info {
+    height: 100px;
     display: flex;
+    justify-content: center;
 }
 
 .load-more {
     display: none;
+    padding: 30px;
+    width: 100%;
+    background-color: green;
+    color: white;
+    margin-left: auto;
+    margin-right: auto;
+    margin-bottom: 20px;
+    cursor: pointer;
 
     &.show {
         display: block;
@@ -39,4 +73,5 @@ img {
 a {
     text-decoration: none;
     color: inherit;
+    height: 500px;
 }
