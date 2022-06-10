@@ -51,7 +51,7 @@ async function callImages(event) {
     const fetch = await fetchImages(url)
     const imagesMarkup = await makeImages(fetch)
     const totalHits = await imagesMarkup;
-    if (gallery.children.length < 500) {
+    if (gallery.children.length < 500 && totalHits > 0) {
         Notify.success(`Hooray! We found ${totalHits} images.`)
         }
         smoothScroll();
@@ -91,7 +91,7 @@ function makeImages(images) {
     lightBox.on('show.simplelightbox')
     lightBox.refresh();
 
-            window.onscroll = throttle(infiniteScroll, 500);
+            window.onscroll = throttle(infiniteScroll, 2000);
             return images.totalHits;
         }
         return;
@@ -114,10 +114,10 @@ function smoothScroll() {
 function infiniteScroll() {
 
      if (gallery.children.length >= 500) {
-            Notify.warning("We're sorry, but you've reached the end of search results.")
-            loadMoreButton.classList.remove("show");
-                return;
-            }
+         Notify.warning("We're sorry, but you've reached the end of search results.")
+         loadMoreButton.classList.remove("show");
+         return;
+     }
 
     if (checkBox.checked === false) {
         loadMoreButton.classList.add("show");
