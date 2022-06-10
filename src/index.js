@@ -11,14 +11,13 @@ const perPage = 40;
 let page = 1;
 let searchParameter = ``;
 let loading = null;
+let loadMoreButton = null;
 
 const searchForm = document.querySelector(`#search-form`)
 const gallery = document.querySelector(`.gallery`)
-const loadMoreButton = document.querySelector(`.load-more`)
 const checkBox = document.querySelector(`#infiniteScroll`)
 
 searchForm.addEventListener(`submit`, callImages)
-loadMoreButton.addEventListener(`click`, callImages)
 
 async function fetchImages(url) {
 
@@ -45,9 +44,12 @@ async function callImages(event) {
             searchParameter = event.target.elements.searchQuery.value;
             gallery.innerHTML = '';
             page = 1;
-            loadMoreButton.classList.remove("show");
+            gallery.insertAdjacentHTML(`beforeend`, `<div class="loading"></div>`);
+            loading = document.querySelector(`.loading`);
         }
-    }
+        }
+        
+
     try {
         const fetch = await fetchImages(url)
     const imagesMarkup = await makeImages(fetch)
@@ -55,7 +57,6 @@ async function callImages(event) {
     if (gallery.children.length < 500 && totalHits > 0) {
         Notify.success(`Hooray! We found ${totalHits} images.`)
         }
-       smoothScroll();
     }
     catch {}
 }
@@ -67,10 +68,11 @@ function makeImages(images) {
                 return;
             }
 
-            if (loading === null) {
+            if (!loading) {
                 gallery.insertAdjacentHTML(`beforeend`, `<div class="loading"></div>`);
-                loading = document.querySelector(`.loading`);
+                loading = gallery.querySelector(`.loading`);
             }
+
             loadingFunc(`start`);
 
     images.hits.map(hit => { 
@@ -98,12 +100,20 @@ function makeImages(images) {
             lightBox.on('show.simplelightbox')
             lightBox.refresh();
             window.onscroll = throttle(infiniteScroll, 500);
+            smoothScroll();
+            
+                  if (checkBox.checked === false && !loadMoreButton) {
+                gallery.insertAdjacentHTML(`beforeend`, `<button type="button" class="load-more">Load more</button>`)
+                loadMoreButton = gallery.querySelector(`.load-more`);
+                loadMoreButton.addEventListener(`click`, callImages);
+                loadMoreButton.classList.add("show");}
 
             if (gallery.children.length >= 500) {
                 window.onscroll = throttle(notoficationMax, 1000);
                 loadMoreButton.classList.remove("show");
-                return
+                return;
             }
+
             return images.totalHits;
         }
         return;
@@ -124,20 +134,10 @@ function smoothScroll() {
 
 function infiniteScroll() {
 
-    if (checkBox.checked === false) {
-        if ((window.innerHeight + window.scrollY) >= document.body.scrollHeight) {
-            loadingFunc(`stop`);
-            return;
-        }
-        loadMoreButton.classList.add("show");
-        return;
-    }
-    
-    if (checkBox.checked === true) {
-        loadMoreButton.classList.remove("show")
+     loadingFunc(`stop`);
+      if (checkBox.checked === true) {
         if ((window.innerHeight + window.scrollY) >= document.body.scrollHeight) {
             callImages();
-            loadingFunc(`stop`);
             return;
         }
     }
