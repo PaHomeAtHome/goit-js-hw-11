@@ -20,7 +20,7 @@ searchForm.addEventListener(`submit`, callImages)
 loadMoreButton.addEventListener(`click`, callImages)
 
 async function fetchImages(url) {
-    try {
+
         const response = await axios.get(url, {
             params: {
                 key: API_KEY,
@@ -35,8 +35,6 @@ async function fetchImages(url) {
         const images = await response.data;
         page += 1;
         return images;
-    }
-    catch (error){console.error(error);}
 }
 
 async function callImages(event) {
@@ -55,16 +53,13 @@ async function callImages(event) {
     const totalHits = await imagesMarkup;
     if (gallery.children.length < 500) {
         Notify.success(`Hooray! We found ${totalHits} images.`)
-    }
+        }
         smoothScroll();
     }
-    catch (error) {
-         console.error(error);
-    }
+    catch {}
 }
 
 function makeImages(images) {
-    try {
         if (images) {
             if (images.hits.length === 0) {
          Notify.warning("Sorry, there are no images matching your search query. Please try again.")
@@ -95,24 +90,16 @@ function makeImages(images) {
     
     lightBox.on('show.simplelightbox')
     lightBox.refresh();
-    smoothScroll();
 
-        window.onscroll = throttle(infiniteScroll, 500);
-
-    if (gallery.children.length >= 500) {
-            Notify.warning("We're sorry, but you've reached the end of search results.")
-            loadMoreButton.classList.remove("show");
-            return;}
-            
+            window.onscroll = throttle(infiniteScroll, 500);
             return images.totalHits;
         }
+        return;
     }
-    catch (error) {console.error(error);}
-}
 
 function smoothScroll() {
     
-    const { height: cardHeight } = document
+  const { height: cardHeight } = document
         .querySelector(".gallery")
         .firstElementChild.getBoundingClientRect();
     
@@ -120,9 +107,18 @@ function smoothScroll() {
         top: cardHeight * perPage,
         behavior: "smooth",
     });
+    
+    return;  
 }
 
 function infiniteScroll() {
+
+     if (gallery.children.length >= 500) {
+            Notify.warning("We're sorry, but you've reached the end of search results.")
+            loadMoreButton.classList.remove("show");
+                return;
+            }
+
     if (checkBox.checked === false) {
         loadMoreButton.classList.add("show");
         return;
