@@ -2,13 +2,10 @@ import { Notify } from "notiflix"
 import SimpleLightbox from "simplelightbox";
 import "simplelightbox/dist/simple-lightbox.min.css";
 import throttle from 'lodash.throttle';
-
+const axios = require('axios').default;
 const lightBox = new SimpleLightbox(`.gallery div a`, { captionsData: `alt`, captionDelay: 250 });
 
 const API_KEY = `27953461-d4616364e0672ac878ff8b77d`
-const imageType = `photo`
-const imageOrientation  = `horizontal`
-const safeSearch = `true`
 const perPage = 40;
 let page = 1;
 let searchParameter = ``;
@@ -22,10 +19,25 @@ searchForm.addEventListener(`submit`, callImages)
 loadMoreButton.addEventListener(`click`, callImages)
 
 async function fetchImages(url) {
-    const response = await fetch(`${url}&page=${page}`);
-    const images = await response.json();
-    page += 1;
-    return images;
+    try {
+        const response = await axios.get(url, {
+            params: {
+                key: API_KEY,
+                q: searchParameter,
+                image_type: 'photo',
+                orientation: 'horizontal',
+                safesearch: `true`,
+                per_page: perPage,
+                page: page,
+            }
+        });
+        const images = await response.data;
+        page += 1;
+        return images;
+    }
+    catch (error) {
+         console.error(error);
+    }
 }
 
 async function callImages(event) {
@@ -38,7 +50,7 @@ async function callImages(event) {
             loadMoreButton.classList.remove("show");
     }}
     try {
-    const url = `https://pixabay.com/api/?key=${API_KEY}&q=${searchParameter}&image_type=${imageType}&orientation=${imageOrientation}&safesearch=${safeSearch}&per_page=${perPage}`
+    const url = `https://pixabay.com/api/`
     const fetch = await fetchImages(url)
     const imagesMarkup = await makeImages(fetch)
     const totalHits = await imagesMarkup;
@@ -47,7 +59,9 @@ async function callImages(event) {
     }
         smoothScroll()
     }
-    catch {}
+    catch (error) {
+         console.error(error);
+    }
 }
 
 function makeImages(images) {
@@ -92,8 +106,6 @@ function makeImages(images) {
             return;
     }
 
-    loadMoreButton.classList.add("show");
-
     return images.totalHits;
 }
 
@@ -111,11 +123,15 @@ function smoothScroll() {
 
 function infiniteScroll() {
     if (checkBox.checked === false) {
+        loadMoreButton.classList.add("show");
         return;
-        }
-    if ((window.innerHeight + window.scrollY) >= document.body.scrollHeight) {
-            loadMoreButton.classList.remove("show")
+    }
+    
+    if (checkBox.checked === true) {
+        loadMoreButton.classList.remove("show")
+        if ((window.innerHeight + window.scrollY) >= document.body.scrollHeight) {
             callImages()
             return;
         }
+    }
     }
