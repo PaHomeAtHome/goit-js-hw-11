@@ -5,6 +5,7 @@ import throttle from 'lodash.throttle';
 const axios = require('axios').default;
 const lightBox = new SimpleLightbox(`.gallery div a`, { captionsData: `alt`, captionDelay: 250 });
 
+const url = `https://pixabay.com/api/`
 const API_KEY = `27953461-d4616364e0672ac878ff8b77d`
 const perPage = 40;
 let page = 1;
@@ -35,29 +36,27 @@ async function fetchImages(url) {
         page += 1;
         return images;
     }
-    catch (error) {
-         console.error(error);
-    }
+    catch (error){console.error(error);}
 }
 
 async function callImages(event) {
     if (event) {
         if (event.type == `submit`) {
-        event.preventDefault();
-        searchParameter = event.target.elements.searchQuery.value;
-        gallery.innerHTML = ''
-        page = 1;
+            event.preventDefault();
+            searchParameter = event.target.elements.searchQuery.value;
+            gallery.innerHTML = ''
+            page = 1;
             loadMoreButton.classList.remove("show");
-    }}
+        }
+    }
     try {
-    const url = `https://pixabay.com/api/`
     const fetch = await fetchImages(url)
     const imagesMarkup = await makeImages(fetch)
     const totalHits = await imagesMarkup;
     if (gallery.children.length < 500) {
         Notify.success(`Hooray! We found ${totalHits} images.`)
     }
-        smoothScroll()
+        smoothScroll();
     }
     catch (error) {
          console.error(error);
@@ -65,10 +64,10 @@ async function callImages(event) {
 }
 
 function makeImages(images) {
-
-     if (images.hits.length === 0) {
+    try {
+        if (images) {
+            if (images.hits.length === 0) {
          Notify.warning("Sorry, there are no images matching your search query. Please try again.")
-         
     }
 
     images.hits.map(hit => { 
@@ -103,22 +102,24 @@ function makeImages(images) {
     if (gallery.children.length >= 500) {
             Notify.warning("We're sorry, but you've reached the end of search results.")
             loadMoreButton.classList.remove("show");
-            return;
+            return;}
+            
+            return images.totalHits;
+        }
     }
-
-    return images.totalHits;
+    catch (error) {console.error(error);}
 }
 
 function smoothScroll() {
-
+    
     const { height: cardHeight } = document
         .querySelector(".gallery")
         .firstElementChild.getBoundingClientRect();
+    
     window.scrollBy({
         top: cardHeight * perPage,
         behavior: "smooth",
     });
-    
 }
 
 function infiniteScroll() {
@@ -134,4 +135,4 @@ function infiniteScroll() {
             return;
         }
     }
-    }
+}
