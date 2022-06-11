@@ -1,7 +1,7 @@
 import { Notify } from "notiflix"
 import SimpleLightbox from "simplelightbox";
 import "simplelightbox/dist/simple-lightbox.min.css";
-import throttle from 'lodash.throttle';
+import debounce from 'lodash.debounce';
 const axios = require('axios').default;
 const lightBox = new SimpleLightbox(`.gallery div a`, { captionsData: `alt`, captionDelay: 250 });
 
@@ -19,7 +19,7 @@ const gallery = document.querySelector(`.gallery`);
 const checkBox = document.querySelector(`#infiniteScroll`);
 
 searchForm.addEventListener(`submit`, callImages),
-window.addEventListener(`scroll`, throttle(infiniteScroll, 500));
+window.addEventListener(`scroll`, debounce(infiniteScroll, 250));
 lightBox.on('show.simplelightbox');
 
 
@@ -55,8 +55,11 @@ async function callImages(event) {
         const fetch = await fetchImages(url);
         const imagesMarkup = await makeImages(fetch);
         const totalHits = await imagesMarkup;
-        smoothScroll();
 
+        if (page > 2) {
+            smoothScroll();
+        }
+  
     if (gallery.children.length < 500 && totalHits > 0) {
         Notify.success(`Hooray! We found ${totalHits} images.`);
         }
@@ -99,7 +102,7 @@ async function makeImages(images, event) {
            `);
     })
             lightBox.refresh();
-            
+
                   if (checkBox.checked === false) {
                       loadMoreButton.classList.add("show");
             }
