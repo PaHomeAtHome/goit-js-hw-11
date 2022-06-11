@@ -5,19 +5,23 @@ import throttle from 'lodash.throttle';
 const axios = require('axios').default;
 const lightBox = new SimpleLightbox(`.gallery div a`, { captionsData: `alt`, captionDelay: 250 });
 
-const url = `https://pixabay.com/api/`
-const API_KEY = `27953461-d4616364e0672ac878ff8b77d`
+const url = `https://pixabay.com/api/`;
+const API_KEY = `27953461-d4616364e0672ac878ff8b77d`;
 const perPage = 40;
 let page = 1;
 let searchParameter = ``;
-let loading = null;
-let loadMoreButton = null;
 
-const searchForm = document.querySelector(`#search-form`)
-const gallery = document.querySelector(`.gallery`)
-const checkBox = document.querySelector(`#infiniteScroll`)
+const loadMoreButton = document.querySelector(`.load-more`);
+loadMoreButton.addEventListener(`click`, callImages);
 
-searchForm.addEventListener(`submit`, callImages)
+const searchForm = document.querySelector(`#search-form`);
+const gallery = document.querySelector(`.gallery`);
+const checkBox = document.querySelector(`#infiniteScroll`);
+
+searchForm.addEventListener(`submit`, callImages),
+window.addEventListener(`scroll`, throttle(infiniteScroll, 500));
+lightBox.on('show.simplelightbox');
+
 
 async function fetchImages(url) {
 
@@ -38,47 +42,44 @@ async function fetchImages(url) {
 }
 
 async function callImages(event) {
-    if (event) {
+
+    try {
+
         if (event.type == `submit`) {
             event.preventDefault();
             searchParameter = event.target.elements.searchQuery.value;
             gallery.innerHTML = '';
             page = 1;
-            gallery.insertAdjacentHTML(`beforeend`, `<div class="loading"></div>`);
-            loading = document.querySelector(`.loading`);
-        }
         }
         
-
-    try {
-        const fetch = await fetchImages(url)
-    const imagesMarkup = await makeImages(fetch)
+        const fetch = await fetchImages(url);
+        const imagesMarkup = await makeImages(fetch);
         const totalHits = await imagesMarkup;
+        smoothScroll();
+
     if (gallery.children.length < 500 && totalHits > 0) {
-        Notify.success(`Hooray! We found ${totalHits} images.`)
+        Notify.success(`Hooray! We found ${totalHits} images.`);
         }
     }
-    catch {}
+
+    catch {
+        Notify.warning("We're sorry, but you've reached the end of search results.");
+        loadMoreButton.classList.remove("show");
+        return;
+    }
 }
 
-function makeImages(images) {
+async function makeImages(images, event) {
+
         if (images) {
             if (images.hits.length === 0) {
                 Notify.warning("Sorry, there are no images matching your search query. Please try again.");
                 return;
             }
 
-            if (!loading) {
-                gallery.insertAdjacentHTML(`beforeend`, `<div class="loading"></div>`);
-                loading = gallery.querySelector(`.loading`);
-            }
-
-            loadingFunc(`start`);
-
     images.hits.map(hit => { 
 
         const { webformatURL, largeImageURL, tags, likes, views, comments, downloads } = hit;
-
         gallery.insertAdjacentHTML("beforeend", 
             `<div class="photo-card">
             <a href="${largeImageURL}">
@@ -97,67 +98,31 @@ function makeImages(images) {
             </div>
            `);
     })
-            lightBox.on('show.simplelightbox')
             lightBox.refresh();
-            window.onscroll = throttle(infiniteScroll, 500);
-            smoothScroll();
             
-                  if (checkBox.checked === false && !loadMoreButton) {
-                gallery.insertAdjacentHTML(`beforeend`, `<button type="button" class="load-more">Load more</button>`)
-                loadMoreButton = gallery.querySelector(`.load-more`);
-                loadMoreButton.addEventListener(`click`, callImages);
-                loadMoreButton.classList.add("show");}
-
-            if (gallery.children.length >= 500) {
-                window.onscroll = throttle(notoficationMax, 1000);
-                loadMoreButton.classList.remove("show");
-                return;
+                  if (checkBox.checked === false) {
+                      loadMoreButton.classList.add("show");
             }
+
+            else {loadMoreButton.classList.remove("show")} 
 
             return images.totalHits;
         }
-        return;
+        return
     }
 
-function smoothScroll() {
+async function smoothScroll() {
     
-  const { height: cardHeight } = document
-        .querySelector(".gallery")
-        .firstElementChild.getBoundingClientRect();
-    
+    const { height: cardHeight } = gallery.firstElementChild.getBoundingClientRect();
     window.scrollBy({
-        top: cardHeight * perPage,
+        top: cardHeight * 2,
         behavior: "smooth",
     });
-    return;  
-}
-
-function infiniteScroll() {
-
-     loadingFunc(`stop`);
-      if (checkBox.checked === true) {
-        if ((window.innerHeight + window.scrollY) >= document.body.scrollHeight) {
-            callImages();
-            return;
-        }
-    }
-}
-
-function notoficationMax() {
-
-    if ((window.innerHeight + window.scrollY) >= document.body.scrollHeight) {
-        Notify.warning("We're sorry, but you've reached the end of search results.");
-        loadingFunc(`stop`);
-        return;
-    }
-    return
-}
-
-function loadingFunc(command) {
-    if (command === `start`) {
-        loading.classList.add("visible");
-        return;
-    }
-    loading.classList.remove("visible");
     return;
+}
+
+async function infiniteScroll() {
+      if (checkBox.checked === true && ((window.innerHeight + window.scrollY) >= document.body.scrollHeight) ) {
+            callImages(`scroll`);
+    }
 }
