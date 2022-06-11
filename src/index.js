@@ -22,7 +22,6 @@ searchForm.addEventListener(`submit`, callImages),
 window.addEventListener(`scroll`, debounce(infiniteScroll, 250));
 lightBox.on('show.simplelightbox');
 
-
 async function fetchImages(url) {
 
         const response = await axios.get(url, {
@@ -72,7 +71,7 @@ async function callImages(event) {
     }
 }
 
-async function makeImages(images, event) {
+async function makeImages(images) {
 
         if (images) {
             if (images.hits.length === 0) {
