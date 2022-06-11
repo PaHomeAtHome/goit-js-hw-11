@@ -63,7 +63,7 @@ async function callImages(event) {
         Notify.success(`Hooray! We found ${totalHits} images.`);
         }
     }
-
+    
     catch {
         Notify.warning("We're sorry, but you've reached the end of search results.");
         loadMoreButton.classList.remove("show");
@@ -75,6 +75,7 @@ async function makeImages(images) {
 
         if (images) {
             if (images.hits.length === 0) {
+                loadMoreButton.classList.remove("show");
                 Notify.warning("Sorry, there are no images matching your search query. Please try again.");
                 return;
             }
@@ -102,11 +103,14 @@ async function makeImages(images) {
     })
             lightBox.refresh();
 
-                  if (checkBox.checked === false) {
-                      loadMoreButton.classList.add("show");
-            }
-
-            else {loadMoreButton.classList.remove("show")} 
+            
+         if (checkBox.checked === false) {
+            loadMoreButton.classList.add("show");
+        }
+        
+        if (checkBox.checked === true) {
+            loadMoreButton.classList.remove("show");
+        }
 
             return images.totalHits;
         }
